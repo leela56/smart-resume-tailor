@@ -6,6 +6,7 @@ import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import OutputPanel from './components/OutputPanel';
 import HomePage from './components/HomePage';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 
 interface RecentResume {
@@ -24,9 +25,9 @@ const getTodayDateString = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>('');
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
+  const userEmail = user?.email || '';
   const [resume, setResume] = useState<string>(''); // Parsed text
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState<string>('');
@@ -337,13 +338,16 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleLogin = (email: string) => {
-    setUserEmail(email);
-    setIsLoggedIn(true);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-stone-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  if (!isLoggedIn) {
-    return <HomePage onLogin={handleLogin} theme={theme} toggleTheme={toggleTheme} />;
+  if (!user) {
+    return <HomePage theme={theme} toggleTheme={toggleTheme} />;
   }
 
   return (
@@ -380,5 +384,11 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const App: React.FC = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 export default App;

@@ -4,39 +4,31 @@ import { GoogleIcon } from './icons/GoogleIcon';
 import Header from './Header';
 import { SparkleIcon } from './icons/SparkleIcon';
 import { XIcon } from './icons/XIcon';
+import { useAuth } from '../contexts/AuthContext';
 
 interface HomePageProps {
-  onLogin: (email: string) => void;
   theme?: 'light' | 'dark';
   toggleTheme?: () => void;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ onLogin, theme, toggleTheme }) => {
+const HomePage: React.FC<HomePageProps> = ({ theme, toggleTheme }) => {
   const [showModal, setShowModal] = useState(false);
-  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { signInWithGoogle } = useAuth();
 
-  const handleSignIn = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!email || !email.includes('@')) {
-      alert("Please enter a valid email address.");
-      return;
+  const handleGoogleSignIn = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await signInWithGoogle();
+      setShowModal(false);
+    } catch (err) {
+      setError('Failed to sign in. Please try again.');
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(true);
-    // Simulate a brief delay for a "realistic" sign-in experience
-    setTimeout(() => {
-      onLogin(email);
-      setIsSubmitting(false);
-    }, 800);
-  };
-
-  const handleGoogleSimulatedLogin = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      onLogin("google.user@example.com");
-      setIsSubmitting(false);
-    }, 1000);
   };
 
   return (
@@ -116,9 +108,15 @@ const HomePage: React.FC<HomePageProps> = ({ onLogin, theme, toggleTheme }) => {
               <p className="text-stone-500 dark:text-slate-400">Sign in to start tailoring your resume</p>
             </div>
 
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="space-y-4">
               <button
-                onClick={handleGoogleSimulatedLogin}
+                onClick={handleGoogleSignIn}
                 disabled={isSubmitting}
                 className="flex items-center justify-center w-full gap-3 px-6 py-3 border border-stone-200 dark:border-slate-700 rounded-xl hover:bg-stone-50 dark:hover:bg-slate-700 transition-all duration-200 font-semibold text-stone-700 dark:text-slate-200 disabled:opacity-50"
               >
@@ -129,44 +127,10 @@ const HomePage: React.FC<HomePageProps> = ({ onLogin, theme, toggleTheme }) => {
                 )}
                 Continue with Google
               </button>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-stone-200 dark:border-slate-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-slate-800 text-stone-500">Or continue with email</span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-stone-700 dark:text-slate-300 mb-1.5" htmlFor="email">
-                    Email Address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-900 border border-stone-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 bg-stone-900 dark:bg-white dark:text-stone-900 text-white font-bold rounded-xl hover:bg-stone-800 dark:hover:bg-stone-100 transition-all active:scale-[0.98] disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Signing in...' : 'Sign In'}
-                </button>
-              </form>
             </div>
 
             <p className="mt-8 text-center text-xs text-stone-400 dark:text-slate-500 leading-relaxed">
-              By continuing, you agree to our Terms of Service and Privacy Policy. This is a simulation environment for demonstration.
+              By continuing, you agree to our Terms of Service and Privacy Policy.
             </p>
           </div>
         </div>
