@@ -1,0 +1,7 @@
+{
+  "name": "SMART RESUME TAILOR",
+  "description": "A tool that uses AI to tailor your resume to a specific job description, helping you highlight the most relevant skills and experiences to catch a recruiter's eye.",
+  "requestFramePermissions": [
+    "clipboard-read"
+  ]
+}
